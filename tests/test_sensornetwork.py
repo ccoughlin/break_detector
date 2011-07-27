@@ -4,6 +4,9 @@
 '''test_sensornetwork.py - tests the SensorNetwork class'''
 
 import unittest
+import os
+import os.path
+import tempfile
 from components import sensornetwork
 from components import resistor
 
@@ -106,3 +109,36 @@ class TestNetwork(unittest.TestCase):
         for cycle in xrange(int(num_cycles)):
             sensor_net.cycles = cycle
         self.assertTrue(sensor_net.complete())
+
+    def test_simulate_returns_dict(self):
+        '''Verify a single run of a simulation returns a dict of resistance, failures'''
+        sim_result = sensornetwork.simulate(num_cycles=3*self.mean_time_to_failure,
+            part_configurations = self.part_configs)
+        self.assertIsInstance(sim_result, dict)
+
+    def test_simulate(self):
+        '''Verify a single simulation run returns 0 or more failures per resistance reading'''
+        sim_result = sensornetwork.simulate(num_cycles=3*self.mean_time_to_failure,
+            part_configurations=self.part_configs)
+        for key, failures_str in sim_result.items():
+            # Ensure float() doesn't raise ValueError in converting key
+            float(key)
+            if failures_str != '':
+                failures = failures_str.split(',')
+                self.assertTrue(len(failures)>0)
+
+    def test_singlecore_simulation_output(self):
+        '''Verify the single-core run produces an output file'''
+        output_file = os.path.join(tempfile.gettempdir(), 'single_core.csv')
+        sensornetwork.run_simulation(num_simulations=2, num_cycles=self.mean_time_to_failure*3,
+            part_configurations=self.part_configs, start_time=0, fname=output_file)
+        self.assertTrue(os.path.getsize(output_file) > 0)
+        os.remove(output_file)
+
+    def test_multicore_simulation_output(self):
+        '''Verify the multi-core run produces an output file'''
+        output_file = os.path.join(tempfile.gettempdir(), 'multi_core.csv')
+        sensornetwork.run_simulation(num_simulations=2, num_cycles=self.mean_time_to_failure*3,
+            part_configurations=self.part_configs, start_time=0, fname=output_file)
+        self.assertTrue(os.path.getsize(output_file) > 0)
+        os.remove(output_file)
