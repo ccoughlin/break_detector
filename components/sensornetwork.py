@@ -73,11 +73,15 @@ def simulate(num_cycles, part_configurations, start_time=0):
     results - keys are the resistance in ohms of the network at a given condition,
     values are a comma-delimited string of the sensors that have failed at this resistance.'''
     sensor_sim = SensorNetwork(part_configurations, start_time)
-    for cycle_num in xrange(int(start_time), int(num_cycles)):
-        if not sensor_sim.complete():
-            sensor_sim.cycles = cycle_num
-        else:
-            break
+    cycle_num = start_time
+    while not sensor_sim.complete() and cycle_num < num_cycles:
+        sensor_sim.cycles += 1
+        cycle_num += 1
+    #for cycle_num in xrange(int(start_time), int(num_cycles)):
+    #    if not sensor_sim.complete():
+    #        sensor_sim.cycles = cycle_num
+    #    else:
+    #        break
     return sensor_sim.status_log
 
 def gen_header(num_simulations, num_cycles):
@@ -87,6 +91,19 @@ def gen_header(num_simulations, num_cycles):
         "# Format:  Simulation Number, Resistance In Ohms, List of Failed Sensors\n"]
     return header_str
 
+def gen_line(num_simulations, num_cycles, part_configurations, start_time):
+    '''Generator function to run the simulation, result is a comma-delimited string
+    (simulation number, resistance in ohms, list of failed sensors)
+    '''
+    simulation = 0
+    while simulation < num_simulations:
+        simulation_run = simulate(num_cycles, part_configurations, start_time)
+        for resistance_reading in simulation_run:
+            output_str = "{0},{1},{2}\n".format(simulation,
+                resistance_reading, simulation_run.get(resistance_reading))
+            yield output_str
+        simulation += 1
+
 def run_simulation(num_simulations, num_cycles, part_configurations, start_time=0, fname="score.csv"):
     '''Runs num_simulations of a SensorNetwork of the provided
     parts starting at time cycle_number and running for num_cycles.
@@ -94,12 +111,8 @@ def run_simulation(num_simulations, num_cycles, part_configurations, start_time=
     '''
     with open(fname, "wb") as fidout:
         fidout.writelines(gen_header(num_simulations, num_cycles))
-        for simulation in xrange(num_simulations):
-            simulation_run = simulate(num_cycles, part_configurations, start_time)
-            for resistance_reading in simulation_run:
-                output_str = "{0},{1},{2}\n".format(simulation,
-                    resistance_reading, simulation_run.get(resistance_reading))
-                fidout.write(output_str)
+        for line in gen_line(num_simulations, num_cycles, part_configurations, start_time):
+            fidout.write(line)
 
 def multirun_simulation(num_simulations, num_cycles, part_configurations, start_time=0, num_processes=None,
     fname='mcore.csv'):
