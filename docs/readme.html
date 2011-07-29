@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="en-us" http-equiv="Content-Language" />
+<title>break_detector README</title>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+<link href="mainstyle.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+<div id="masthead">
+	break_detector</div>
+<div id="right_col">
+	<ul id="nav_li">
+		<li><a href="#Introduction">Introduction</a></li>
+		<li><a href="#System Requirements">System Requirements</a></li>
+		<li><a href="#Basic_Usage">Basic Usage</a></li>
+		<li><a href="#License">License</a></li>
+	</ul>
+</div>
+<div id="page_content">
+	<h1><a name="Introduction">Introduction</a></h1>
+	<p>break_detector is a simple command-line Python model of the life and death 
+	of a part undergoing Accelerated Life Testing (ALT) and an idea I had a while 
+	back on an easy way to detect failures.</p>
+	<p>Suppose you have a new part and you want to get an idea for how long it can 
+	stay in use before it's likely to wear out: it's mean time to failure (MTTF). 
+	One way to do this is to subject the part to ALT: put it in a chamber and apply 
+	heightened levels of moisture, corrosive agents, heat, cold, etc. to make it 
+	age more quickly than in a normal environment. Since each part won't necessarily 
+	fail at the same time, you need to subject more than one part to ALT to figure 
+	out the part's average lifetime.</p>
+	<p>The problem is that you need to test a lot of parts to ALT, and you need 
+	to know when they fail. That means either having a data acquisition system that 
+	can take dozens or even hundreds of inputs simultaneously, or hiring somebody 
+	to watch the ALT chambers 24/7 to record when each part fails. Either option 
+	is expensive.</p>
+	<p>I had an idea about how you could run several parts on a single data acquisition 
+	input, but I needed a way to see if it might work in real life. So I put together 
+	this program to simulate a part that fails and the idea I had to detect the 
+	failure; run it a few thousand times and you have a Monte Carlo simulation of 
+	the system and a better idea if it would be feasible.</p>
+	<p>Skip to <a href="#Basic_Usage">Basic Usage</a> if you just want to run break_detector; 
+	read on if you want to know about the instrumentation.</p>
+	<h2>Instrumentation</h2>
+	<p>Imagine your part is clamped on one end and a heavy weight is attached to 
+	the other end:</p>
+	<img alt="Diagram of part in ALT" class="center" height="640" src="img/alt_part_s.png" width="384" />
+	<p>You might do something similar if you were testing a piece of fabric or something 
+	similar in ALT: the weight keeps the tension in the part, and at some point 
+	the part fails by breaking. Now imagine that you attach a resistor to the part, 
+	and that resistor's wire leads are fine copper wires (like magnet wire):</p>
+	<img alt="Diagram of part in ALT with resistor failure sensor" class="center" height="517" src="img/alt_instrumented_part_s.png" width="480" />
+	<p>Now when the part breaks, the magnet wires will break as well. Whatever electrical 
+	resistance you were reading across the resistor now goes up to "infinity" (not 
+	really) as there is no complete electrical circuit anymore.</p>
+	<p>If you take several of these instrumented parts and put known resistors of 
+	different values across them, you can wire up their respective resistors in 
+	parallel:</p>
+	<img alt="Diagram of networked instrumented parts" class="center" height="214" src="img/resistor_network.png" width="640" />
+	<p>Now when you take an electrical resistance reading, it's the
+	<a href="http://en.wikipedia.org/wiki/Thévenin's_theorem">Thévenin equivalent</a> 
+	of the network of resistors. If you choose your initial resistors wisely, then 
+	you should be able to measure this Thévenin resistance and know which parts 
+	have failed and which are still intact. That means that instead of using one 
+	input for each part, you can wire up several parts to each input on your data 
+	acquisition system and save a lot of money in the process.</a></p>
+	<p>What the break_detector program does is simulate both the random failure 
+	of a part and the measured resistance readings. You configure break_detector 
+	with an initial pick of resistors; after running through a few thousand simulations 
+	you can find out if the expected resistance readings are sufficiently different 
+	that you will be able to back out which parts failed and when based on only 
+	a measured resistance.</p>
+	<h1><a name="System Requirements">System Requirements</a></h1>
+	<p>break_detector is written in pure <a href="http://www.python.org">Python</a> 
+	and has been tested under OS X Lion and Windows 7, and should work on any platform 
+	with Python 2.7 (no extra libraries required). It also works under
+	<a href="http://pypy.org/download.html">PyPy 1.5</a> or higher.</p>
+	<h1><a name="Basic_Usage">Basic Usage</a></h1>
+	<p><tt>python break_detector.py [-nNumSims] [-m] [-oOutputDestination]</tt></p>
+	<p>To specify a specific number of simulations to run, use <tt>-nNumSims</tt>, 
+	e.g. <tt>-n1000</tt> to run 1,000 simulations.</p>
+	<p>By default break_detector uses a single process to run the simulations, but 
+	if you'd like to use multiple processes use the <tt>-m</tt> switch. This will 
+	instruct break_detector to use as many processes as your computer has CPUs; 
+	you likely won't notice any increase in performance (time to finish the simulations) 
+	but it will consume less of each CPU's power.</p>
+	<p>To specify an output destination for the simulation results, use <tt>-oOutputDestination</tt>, 
+	e.g. <tt>-oresults.csv</tt> to save the results to the file results.csv. Results 
+	are stored as ASCII-delimited text files.</p>
+	<p>By default break_detector simulates a five-sensor network of 1000 Ohm, 2000 
+	Ohm, 3000 Ohm, 4000 Ohm, and 5000 Ohm resistors. If you'd like to try other 
+	network configurations, edit the <tt>break_detector.py</tt> file and edit the
+	<tt>build_part_configs</tt> function's <tt>resistances = [1e3, 2e3, 3e3, 4e3, 
+	5e3]</tt> statement to as many or as few nominal resistances as you'd like.</p>
+	<p>To determine if your configuration would work in real life or not, examine 
+	the output of the simulation runs. Ideally you should see a fairly large difference 
+	between the resistance readings; more than about ten percent or so to be conservative. 
+	If this is the case, this means that for any given resistance reading you would 
+	take in a real life ALT setup you'd be able to back out which parts had failed 
+	and which were still intact.</p>
+	<h1><a name="License">License</a></h1>
+	<p>In a nutshell, you are free to use the download as-is, provided you credit 
+	me and understand I offer no warranty or guarantee.</p>
+	<p>Copyright (c) 2011 Chris R. Coughlin. All rights reserved.<br />
+	Redistribution and use in the original form of distribution without modification 
+	is permitted provided that the following conditions are met:</p>
+	<ol>
+		<li>Redistributions must reproduce the above copyright notice, this list 
+		of conditions and the following disclaimer in the documentation and/or other 
+		materials provided with the distribution.</li>
+		<li>Neither the name of the original developer Chris R. Coughlin nor the 
+		names of any contributors may be used to endorse or promote products derived 
+		from this software without specific prior written permission.</li>
+	</ol>
+	<p><tt>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &#39;AS 
+	IS&#39; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+	THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE 
+	FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+	(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND 
+	ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</tt></p>
+</div>
+
+</body>
+
+</html>
