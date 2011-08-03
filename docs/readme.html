@@ -23,15 +23,17 @@
 <div id="page_content">
 	<h1><a name="Introduction">Introduction</a></h1>
 	<p>break_detector is a simple command-line Python model of the life and death 
-	of a part undergoing Accelerated Life Testing (ALT) and an idea I had a while 
-	back on an easy way to detect failures.</p>
+	of a part undergoing Accelerated Life Testing (ALT, also known as
+	<a href="http://en.wikipedia.org/wiki/Accelerated_aging">Accelerated Aging</a>) 
+	and an idea I had a while back on an easy way to detect failures.</p>
 	<p>Suppose you have a new part and you want to get an idea for how long it can 
 	stay in use before it's likely to wear out: it's mean time to failure (MTTF). 
-	One way to do this is to subject the part to ALT: put it in a chamber and apply 
-	heightened levels of moisture, corrosive agents, heat, cold, etc. to make it 
-	age more quickly than in a normal environment. Since each part won't necessarily 
-	fail at the same time, you need to subject more than one part to ALT to figure 
-	out the part's average lifetime.</p>
+	One way to do this is to subject the part to ALT: put it in an
+	<a href="http://en.wikipedia.org/wiki/Environmental_chamber">environmental chamber</a> 
+	and apply heightened levels of moisture, corrosive agents, heat, cold, etc. 
+	to make it age more quickly than in a normal environment. Since each part won't 
+	necessarily fail at the same time, you need to subject more than one part to 
+	ALT to figure out the part's average lifetime.</p>
 	<p>The problem is that you need to test a lot of parts to ALT, and you need 
 	to know when they fail. That means either having a data acquisition system that 
 	can take dozens or even hundreds of inputs simultaneously, or hiring somebody 
@@ -101,11 +103,17 @@
 	to the analysis will run an additional analysis check to make sure that individual 
 	resistance readings are sufficiently far apart (as will be specified by the
 	<tt>-tCollisionTolerance</tt> flag, defaults to 0.1).</p>
-	<p>By default break_detector simulates a four-sensor network of 2 M&Omega;, 3 M&Omega;, 
-	4 M&Omega;, and 5 M&Omega; resistors. If you'd like to try other network configurations, 
-	edit the <tt>break_detector.py</tt> file and edit the <tt>build_part_configs</tt> 
-	function's <tt>resistances = [...]</tt> statement to as many or as few nominal 
-	resistances as you'd like.</p>
+	<p>Note that just finding that more than one combination of failed sensors results 
+	in the same resistance doesn't necessarily mean that you can't use your design, 
+	as long as you would periodically check it during the experiment. You'd only 
+	have to ensure that there was only one combination of failed sensors for any 
+	given electrical resistance reading of the system as a whole if you were planning 
+	on never checking the ALT, but just collecting the results at the end.</p>
+	<p>By default break_detector simulates a four-sensor network of 2 M&Omega;, 
+	3 M&Omega;, 4 M&Omega;, and 5 M&Omega; resistors. If you'd like to try other 
+	network configurations, edit the <tt>break_detector.py</tt> file and edit the
+	<tt>build_part_configs</tt> function's <tt>resistances = [...]</tt> statement 
+	to as many or as few nominal resistances as you'd like.</p>
 	<p>To determine if your configuration would work in real life or not, examine 
 	the output of the simulation runs. Ideally you should see a fairly large difference 
 	between the resistance readings; more than about ten percent or so to be conservative. 
