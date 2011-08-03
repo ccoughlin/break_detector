@@ -48,10 +48,11 @@
 	<p>Imagine your part is clamped on one end and a heavy weight is attached to 
 	the other end:</p>
 	<img alt="Diagram of part in ALT" class="center" height="640" src="img/alt_part_s.png" width="384" />
-	<p>You might do something similar if you were testing a piece of fabric or something 
-	similar in ALT: the weight keeps the tension in the part, and at some point 
-	the part fails by breaking. Now imagine that you attach a resistor to the part, 
-	and that resistor's wire leads are fine copper wires (like magnet wire):</p>
+	<p>You might do something similar if you were testing a piece of fabric, Kevlar 
+	strand, or something similar in ALT: the weight keeps the tension in the part, 
+	and at some point the part fails by breaking. Now imagine that you attach a 
+	resistor to the part, and that resistor's wire leads are fine copper wires (like 
+	magnet wire):</p>
 	<img alt="Diagram of part in ALT with resistor failure sensor" class="center" height="517" src="img/alt_instrumented_part_s.png" width="480" />
 	<p>Now when the part breaks, the magnet wires will break as well. Whatever electrical 
 	resistance you were reading across the resistor now goes up to "infinity" (not 
@@ -66,7 +67,7 @@
 	you should be able to measure this Thévenin resistance and know which parts 
 	have failed and which are still intact. That means that instead of using one 
 	input for each part, you can wire up several parts to each input on your data 
-	acquisition system and save a lot of money in the process.</a></p>
+	acquisition system and save a lot of money in the process.</p>
 	<p>What the break_detector program does is simulate both the random failure 
 	of a part and the measured resistance readings. You configure break_detector 
 	with an initial pick of resistors; after running through a few thousand simulations 
@@ -79,7 +80,8 @@
 	with Python 2.7 (no extra libraries required). It also works under
 	<a href="http://pypy.org/download.html">PyPy 1.5</a> or higher.</p>
 	<h1><a name="Basic_Usage">Basic Usage</a></h1>
-	<p><tt>python break_detector.py [-nNumSims] [-m] [-oOutputDestination]</tt></p>
+	<p><tt>python break_detector.py [-nNumSims] [-m] [-oOutputDestination] [-c] 
+	[-tCollisionTolerance]</tt></p>
 	<p>To specify a specific number of simulations to run, use <tt>-nNumSims</tt>, 
 	e.g. <tt>-n1000</tt> to run 1,000 simulations.</p>
 	<p>By default break_detector uses a single process to run the simulations, but 
@@ -90,11 +92,20 @@
 	<p>To specify an output destination for the simulation results, use <tt>-oOutputDestination</tt>, 
 	e.g. <tt>-oresults.csv</tt> to save the results to the file results.csv. Results 
 	are stored as ASCII-delimited text files.</p>
-	<p>By default break_detector simulates a five-sensor network of 1000 Ohm, 2000 
-	Ohm, 3000 Ohm, 4000 Ohm, and 5000 Ohm resistors. If you'd like to try other 
-	network configurations, edit the <tt>break_detector.py</tt> file and edit the
-	<tt>build_part_configs</tt> function's <tt>resistances = [1e3, 2e3, 3e3, 4e3, 
-	5e3]</tt> statement to as many or as few nominal resistances as you'd like.</p>
+	<p>To quickly get a good/no-good analysis of your results, use the <tt>-c</tt> 
+	argument to have break_detector run the analysis for you automatically. As of 
+	right now it looks for "obvious" resistance reading collisions: if a single 
+	electrical resistance reading is found in the results and was produced by more 
+	than one combination of failed sensors, this resistor network wouldn't be able 
+	to differentiate between the failure states in a real ALT test. Future updates 
+	to the analysis will run an additional analysis check to make sure that individual 
+	resistance readings are sufficiently far apart (as will be specified by the
+	<tt>-tCollisionTolerance</tt> flag, defaults to 0.1).</p>
+	<p>By default break_detector simulates a four-sensor network of 2 M&Omega;, 3 M&Omega;, 
+	4 M&Omega;, and 5 M&Omega; resistors. If you'd like to try other network configurations, 
+	edit the <tt>break_detector.py</tt> file and edit the <tt>build_part_configs</tt> 
+	function's <tt>resistances = [...]</tt> statement to as many or as few nominal 
+	resistances as you'd like.</p>
 	<p>To determine if your configuration would work in real life or not, examine 
 	the output of the simulation runs. Ideally you should see a fairly large difference 
 	between the resistance readings; more than about ten percent or so to be conservative. 
